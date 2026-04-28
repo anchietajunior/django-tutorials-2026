@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}{{ tarefa.titulo }}{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow">
+    <div class="flex items-start justify-between mb-4">
+        <h1 class="text-2xl font-bold">{{ tarefa.titulo }}</h1>
+        <span class="px-3 py-1 rounded text-sm
+            {% if tarefa.status == 'PENDENTE' %}bg-yellow-100 text-yellow-800{% endif %}
+            {% if tarefa.status == 'EM_ANDAMENTO' %}bg-blue-100 text-blue-800{% endif %}
+            {% if tarefa.status == 'CONCLUIDA' %}bg-green-100 text-green-800{% endif %}">
+            {{ tarefa.get_status_display }}
+        </span>
+    </div>
+
+    <div class="space-y-2 text-sm text-gray-600 mb-6">
+        <p><strong>Categoria:</strong>
+            <span class="inline-flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full" style="background: {{ tarefa.categoria.cor }}"></span>
+                {{ tarefa.categoria.nome }}
+            </span>
+        </p>
+        <p><strong>Prioridade:</strong> {{ tarefa.get_prioridade_display }}</p>
+        <p><strong>Criada em:</strong> {{ tarefa.criada_em|date:"d/m/Y H:i" }}</p>
+        {% if tarefa.concluida_em %}
+            <p><strong>Concluída em:</strong> {{ tarefa.concluida_em|date:"d/m/Y H:i" }}</p>
+        {% endif %}
+    </div>
+
+    {% if tarefa.descricao %}
+        <div class="bg-gray-50 p-4 rounded mb-6">
+            <p class="whitespace-pre-line">{{ tarefa.descricao }}</p>
+        </div>
+    {% endif %}
+
+    <div class="flex gap-2">
+        <a href="{% url 'tarefas:editar' tarefa.pk %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Editar</a>
+        <a href="{% url 'tarefas:excluir' tarefa.pk %}" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Excluir</a>
+        <a href="{% url 'tarefas:lista' %}" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50">Voltar</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+SECRET_KEY=django-insecure-troque-isso-em-producao-1234567890
+DEBUG=True
+DB_NAME=tarefas
+DB_USER=root
+DB_PASSWORD=root123
+DB_HOST=127.0.0.1
+DB_PORT=3306

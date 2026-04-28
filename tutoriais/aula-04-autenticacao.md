@@ -1,0 +1,324 @@
+# Aula 04 — User Customizado + Autenticação
+
+## Objetivo
+
+Criar o **User customizado** (decisão importante para projetos sérios) e telas de **signup, login, logout** com Tailwind. Esta aula introduz ao mesmo tempo: criação de app, definição de Model, primeira migration, admin e CBVs.
+
+```
+[ app accounts ] → [ User(AbstractUser) ] → [ AUTH_USER_MODEL ] → [ migrate ] → [ telas ]
+```
+
+> **Por que User customizado já agora?** A documentação oficial do Django recomenda criar um `User` customizado **antes da primeira migration** mesmo que vazio. Adiar significa reset de banco depois.
+
+---
+
+## 1. Criando o app `accounts`
+
+```bash
+python manage.py startapp accounts
+```
+
+---
+
+## 2. Model: User customizado
+
+`accounts/models.py`:
+
+```python
+from django.contrib.auth.models import AbstractUser
+
+
+class User(AbstractUser):
+    pass
+```
+
+**Por que `AbstractUser`?** Herda tudo do User padrão (username, email, password, is_staff...). Ficamos com a porta aberta para adicionar campos depois (ex: `avatar`, `bio`) sem virar reset.
+
+---
+
+## 3. Configurar `settings.py`
+
+```python
+INSTALLED_APPS = [
+    # ...
+    'core',
+    'accounts',
+]
+
+AUTH_USER_MODEL = 'accounts.User'
+
+LOGIN_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = 'core:home'
+LOGOUT_REDIRECT_URL = 'core:home'
+```
+
+| Setting | Função |
+|---|---|
+| `AUTH_USER_MODEL` | Diz ao Django qual model usar como User |
+| `LOGIN_URL` | Para onde redirecionar usuários não autenticados |
+| `LOGIN_REDIRECT_URL` | Para onde ir após login bem sucedido |
+| `LOGOUT_REDIRECT_URL` | Para onde ir após logout |
+
+---
+
+## 4. Admin do User
+
+`accounts/admin.py`:
+
+```python
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+
+from .models import User
+
+admin.site.register(User, UserAdmin)
+```
+
+Reaproveitamos a `UserAdmin` padrão — todas as funcionalidades (criar, editar permissões, mudar senha) sem escrever código.
+
+---
+
+## 5. Primeira migration + superuser
+
+Agora podemos migrar pela primeira vez:
+
+```bash
+python manage.py makemigrations accounts
+python manage.py migrate
+```
+
+Cria as tabelas internas do Django (auth, sessions, admin) **e** o `accounts_user`.
+
+```bash
+python manage.py createsuperuser
+```
+
+Informe usuário, email e senha.
+
+Acesse `http://127.0.0.1:8000/admin/` e faça login.
+
+---
+
+## 6. Form de signup
+
+`accounts/forms.py`:
+
+```python
+from django.contrib.auth.forms import UserCreationForm
+
+from .models import User
+
+
+class SignupForm(UserCreationForm):
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ['username', 'email']
+```
+
+Reutilizamos o `UserCreationForm` (já valida senha forte, confirmação, etc.) trocando o model para o nosso.
+
+---
+
+## 7. Views
+
+`accounts/views.py`:
+
+```python
+from django.urls import reverse_lazy
+from django.views.generic import CreateView
+
+from .forms import SignupForm
+
+
+class SignupView(CreateView):
+    form_class = SignupForm
+    template_name = 'accounts/signup.html'
+    success_url = reverse_lazy('accounts:login')
+```
+
+| Detalhe | Função |
+|---|---|
+| `CreateView` | CBV para criação. Recebe form, renderiza no GET, salva no POST |
+| `success_url` | Para onde ir após criar |
+| `reverse_lazy` | Como `reverse`, mas avalia tarde (necessário em atributos de classe) |
+
+---
+
+## 8. URLs de auth
+
+`accounts/urls.py`:
+
+```python
+from django.contrib.auth.views import LoginView, LogoutView
+from django.urls import path
+
+from . import views
+
+app_name = 'accounts'
+
+urlpatterns = [
+    path(
+        'entrar/',
+        LoginView.as_view(template_name='accounts/login.html'),
+        name='login',
+    ),
+    path('sair/', LogoutView.as_view(), name='logout'),
+    path('cadastrar/', views.SignupView.as_view(), name='signup'),
+]
+```
+
+`LoginView` e `LogoutView` já vêm prontas do Django — só precisamos apontar o template do login.
+
+`config/urls.py`:
+
+```python
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('contas/', include('accounts.urls')),
+    path('', include('core.urls')),
+]
+```
+
+---
+
+## 9. Templates
+
+```bash
+mkdir -p accounts/templates/accounts
+```
+
+`accounts/templates/accounts/login.html`:
+
+```html
+{% extends 'base.html' %}
+{% block title %}Entrar{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow">
+    <h1 class="text-2xl font-bold mb-6 text-center">Entrar</h1>
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="bg-red-50 text-red-800 p-3 rounded">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        {% for field in form %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+                <input type="{{ field.field.widget.input_type }}"
+                       name="{{ field.name }}"
+                       {% if field.value %}value="{{ field.value }}"{% endif %}
+                       class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-blue-500">
+                {% if field.errors %}
+                    <div class="text-sm text-red-600 mt-1">{{ field.errors }}</div>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+            Entrar
+        </button>
+    </form>
+
+    <p class="text-center text-sm text-gray-600 mt-4">
+        Não tem conta? <a href="{% url 'accounts:signup' %}" class="text-blue-600 hover:underline">Cadastre-se</a>
+    </p>
+</div>
+{% endblock %}
+```
+
+`accounts/templates/accounts/signup.html`:
+
+```html
+{% extends 'base.html' %}
+{% block title %}Cadastrar{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow">
+    <h1 class="text-2xl font-bold mb-6 text-center">Criar conta</h1>
+
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        {% for field in form %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <p class="text-xs text-gray-500 mt-1">{{ field.help_text|safe }}</p>
+                {% endif %}
+                {% if field.errors %}
+                    <div class="text-sm text-red-600 mt-1">{{ field.errors }}</div>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+            Cadastrar
+        </button>
+    </form>
+
+    <p class="text-center text-sm text-gray-600 mt-4">
+        Já tem conta? <a href="{% url 'accounts:login' %}" class="text-blue-600 hover:underline">Entrar</a>
+    </p>
+</div>
+{% endblock %}
+```
+
+---
+
+## 10. Atualizar a navbar do `base.html`
+
+Em `templates/base.html`, troque o `{% block nav %}{% endblock %}` por:
+
+```html
+{% if user.is_authenticated %}
+    <span class="text-gray-500">Olá, {{ user.username }}</span>
+    <form method="post" action="{% url 'accounts:logout' %}" class="inline">
+        {% csrf_token %}
+        <button type="submit" class="text-gray-700 hover:text-red-600">Sair</button>
+    </form>
+{% else %}
+    <a href="{% url 'accounts:login' %}" class="text-gray-700 hover:text-blue-600">Entrar</a>
+    <a href="{% url 'accounts:signup' %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+        Cadastrar
+    </a>
+{% endif %}
+```
+
+> **Por que logout via POST?** Versões recentes do Django (5+) só aceitam logout em POST por segurança (evita CSRF de logout via link).
+
+---
+
+## 11. Testar
+
+```bash
+python manage.py runserver
+```
+
+1. Acesse `/contas/cadastrar/` → crie um usuário
+2. Após salvar, é redirecionado para login
+3. Faça login → volta para a home logado
+4. A navbar muda: agora mostra "Olá, fulano" + botão Sair
+5. Clica em Sair → volta para a home deslogado
+
+---
+
+## Exercício
+
+1. Crie o app `accounts` com `User(AbstractUser)`
+2. Configure `AUTH_USER_MODEL` e settings de auth
+3. Registre `UserAdmin`
+4. Rode `makemigrations` + `migrate` + `createsuperuser`
+5. Crie `SignupForm`, `SignupView`, `accounts/urls.py`
+6. Templates de login e signup
+7. Atualize a navbar
+8. Teste signup, login, logout
+
+---
+
+## Próxima aula
+
+[Aula 05 — Categoria — Model + Admin](aula-05-categoria.md).

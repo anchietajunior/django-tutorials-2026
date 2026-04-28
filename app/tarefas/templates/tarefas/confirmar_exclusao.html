@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Excluir tarefa{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow">
+    <div class="bg-red-50 border border-red-200 p-4 rounded mb-4">
+        <h2 class="text-xl font-bold text-red-800 mb-2">Excluir tarefa?</h2>
+        <p class="text-gray-700">
+            Você está prestes a excluir <strong>"{{ object.titulo }}"</strong>.
+            Esta ação não pode ser desfeita.
+        </p>
+    </div>
+
+    <form method="post" class="flex gap-2">
+        {% csrf_token %}
+        <button type="submit" class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">Excluir</button>
+        <a href="{% url 'tarefas:lista' %}" class="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50">Cancelar</a>
+    </form>
+</div>
+{% endblock %}
