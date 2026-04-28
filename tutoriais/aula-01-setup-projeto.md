@@ -201,4 +201,4 @@ python manage.py runserver
 
 ## Próxima aula
 
-[Aula 02 — MySQL via Docker](aula-02-mysql.md).
+[Aula 02 — MySQL nativo + `.env`](aula-02-mysql.md).

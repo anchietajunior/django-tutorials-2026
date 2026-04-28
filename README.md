@@ -7,7 +7,7 @@ Aplicação Django construída ao longo de uma trilha de aulas. O código fica e
 | # | Aula | Entrega |
 |---|---|---|
 | 01 | [Setup do projeto Django](tutoriais/aula-01-setup-projeto.md) | Projeto rodando com a página padrão do Django |
-| 02 | [MySQL via Docker + `.env`](tutoriais/aula-02-mysql.md) | Banco conectado ao Django |
+| 02 | [MySQL nativo + `.env`](tutoriais/aula-02-mysql.md) | Banco conectado ao Django |
 | 03 | [TailwindCSS (CDN) + layout base](tutoriais/aula-03-tailwind-e-layout-base.md) | Home estilizada com navbar |
 | 04 | [User customizado + autenticação](tutoriais/aula-04-autenticacao.md) | Signup, login, logout funcionando |
 | 05 | [Categoria — Model + Admin](tutoriais/aula-05-categoria.md) | Categorias gerenciadas pelo Django Admin |
@@ -24,4 +24,4 @@ source venv/bin/activate
 python manage.py runserver
 ```
 
-Pré-requisito: container MySQL ativo (ver [Aula 02](tutoriais/aula-02-mysql.md)).
+Pré-requisito: MySQL rodando localmente com o database `tarefas` criado (ver [Aula 02](tutoriais/aula-02-mysql.md)).

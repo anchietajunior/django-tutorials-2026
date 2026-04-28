@@ -117,7 +117,7 @@ Cadastre algumas:
 ## 6. Verificar no MySQL (opcional)
 
 ```bash
-docker exec -it mysql-tarefas mysql -uroot -proot123 tarefas
+mysql -u root -p tarefas
 ```
 
 ```sql

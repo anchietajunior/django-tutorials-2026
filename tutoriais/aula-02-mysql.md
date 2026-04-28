@@ -1,81 +1,87 @@
-# Aula 02 — MySQL via Docker
+# Aula 02 — MySQL nativo + `.env`
 
 ## Objetivo
 
-Trocar o SQLite padrão por MySQL rodando num **container Docker** — sem instalar nada no seu sistema operacional. Isolar credenciais em `.env`.
+Trocar o SQLite padrão por MySQL **instalado diretamente na máquina** e isolar credenciais em `.env`.
 
 ```
-[ Docker MySQL ] → [ DB tarefas ] → [ Django settings ] → [ migrate ]
+[ MySQL local ] → [ DB tarefas ] → [ Django settings ] → [ migrate ]
 ```
 
-> **Por que Docker?** MySQL nativo exige instalar serviço, configurar senha root, gerenciar versão. Container resolve em uma linha e zero contaminação do sistema.
+> **Por que MySQL e não SQLite?** SQLite é ótimo para começar, mas em produção quase sempre usamos um SGBD cliente-servidor. Aprender a configurar a conexão agora é parte do trabalho.
 
 ---
 
-## 1. Subir o container MySQL
+## 1. Instalar o MySQL
 
-Pré-requisito: ter o Docker Desktop instalado e rodando.
+Escolha o caminho do seu sistema operacional. Em todos eles, no fim você vai ter um servidor MySQL escutando em `localhost:3306`.
 
-```bash
-docker run -d \
-  --name mysql-tarefas \
-  -e MYSQL_ROOT_PASSWORD=root123 \
-  -e MYSQL_DATABASE=tarefas \
-  -p 3306:3306 \
-  mysql:8 \
-  --character-set-server=utf8mb4 \
-  --collation-server=utf8mb4_unicode_ci
-```
+### Windows
 
-| Flag | Significado |
-|---|---|
-| `-d` | Roda em background (detached) |
-| `--name` | Nome do container, para referenciar depois |
-| `-e MYSQL_ROOT_PASSWORD` | Define a senha do root |
-| `-e MYSQL_DATABASE` | Cria o database `tarefas` na inicialização |
-| `-p 3306:3306` | Mapeia a porta do container para a máquina |
-| `--character-set-server=utf8mb4` | Usa UTF-8 completo (suporta emojis) |
-| `--collation-server=utf8mb4_unicode_ci` | Comparação de strings sensível a unicode |
+1. Baixe o **MySQL Installer** em [dev.mysql.com/downloads/installer](https://dev.mysql.com/downloads/installer/)
+2. Execute e escolha **Developer Default** (instala servidor + utilitários + connector)
+3. Quando pedir, defina a senha do usuário `root` (anote — vai usar no `.env`)
+4. Aceite a porta padrão **3306** e finalize
 
-> **Por que `utf8mb4`?** O `utf8` antigo do MySQL suporta apenas 3 bytes — exclui emojis. `utf8mb4` é o UTF-8 real (4 bytes).
-
-### Verificar se subiu
+### macOS
 
 ```bash
-docker ps
+brew install mysql
+brew services start mysql
+mysql_secure_installation
 ```
 
-Deve listar `mysql-tarefas` com status `Up`.
+`mysql_secure_installation` é interativo: define a senha do `root`, remove usuários anônimos, etc. Anote a senha.
 
-### Conectar via console (opcional)
+### Linux (Debian/Ubuntu)
 
 ```bash
-docker exec -it mysql-tarefas mysql -uroot -proot123
+sudo apt update
+sudo apt install mysql-server
+sudo systemctl enable --now mysql
+sudo mysql_secure_installation
 ```
 
-Dentro do MySQL:
+---
+
+## 2. Criar o database `tarefas`
+
+Conecte como root:
+
+```bash
+mysql -u root -p
+```
+
+Dentro do prompt do MySQL, crie o database com `utf8mb4` (UTF-8 completo, suporta emojis):
 
 ```sql
+CREATE DATABASE tarefas
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
 SHOW DATABASES;
 EXIT;
 ```
 
-### Comandos úteis
-
-```bash
-docker stop mysql-tarefas    # parar
-docker start mysql-tarefas   # ligar de novo
-docker logs mysql-tarefas    # ver logs
-docker rm -f mysql-tarefas   # remover (perde os dados)
-```
+> **Por que `utf8mb4`?** O `utf8` antigo do MySQL suporta apenas 3 bytes — exclui emojis e alguns caracteres asiáticos. `utf8mb4` é o UTF-8 real (4 bytes).
 
 ---
 
-## 2. Conector Python: `mysqlclient`
+## 3. Conector Python: `mysqlclient`
 
 Com o **venv ativo**:
 
-**Mac:**
+### Windows
+
+Em geral o wheel pré-compilado funciona direto:
+
+```bash
+pip install mysqlclient
+```
+
+Se falhar, baixe um wheel específico em [pypi.org/project/mysqlclient/#files](https://pypi.org/project/mysqlclient/#files) e instale com `pip install nome_do_arquivo.whl`.
+
+### macOS
 
 ```bash
 brew install mysql-client pkg-config
@@ -83,22 +89,18 @@ export PKG_CONFIG_PATH="$(brew --prefix mysql-client)/lib/pkgconfig"
 pip install mysqlclient
 ```
 
-**Linux (Debian/Ubuntu):**
+### Linux (Debian/Ubuntu)
 
 ```bash
 sudo apt install pkg-config default-libmysqlclient-dev build-essential
 pip install mysqlclient
 ```
 
-**Windows:**
-
-Baixe um wheel pré-compilado em [pypi.org/project/mysqlclient/#files](https://pypi.org/project/mysqlclient/#files) e instale com `pip install nome_do_arquivo.whl`.
-
-> **Por que `mysqlclient` e não outro?** É o driver oficial recomendado pela comunidade Django, em C, mais rápido. Versões recentes do Django (6+) exigem ele.
+> **Por que `mysqlclient` e não outro?** É o driver recomendado pela comunidade Django, escrito em C, mais rápido. Versões recentes do Django (6+) exigem ele para o backend MySQL nativo.
 
 ---
 
-## 3. `python-decouple` para variáveis de ambiente
+## 4. `python-decouple` para variáveis de ambiente
 
 Senhas **nunca** vão pro código. Vamos isolá-las num `.env`.
 
@@ -113,18 +115,18 @@ SECRET_KEY=django-insecure-troque-isso-em-producao-1234567890
 DEBUG=True
 DB_NAME=tarefas
 DB_USER=root
-DB_PASSWORD=root123
+DB_PASSWORD=sua_senha_do_root_aqui
 DB_HOST=127.0.0.1
 DB_PORT=3306
 ```
 
-> O `.env` já está no `.gitignore` da Aula 01. Cada desenvolvedor terá o seu.
+> O `.env` já está no `.gitignore` da Aula 01. Cada aluno tem o seu — a senha do MySQL local pode (e deve) ser diferente da do colega.
 
 ---
 
-## 4. Configurar `settings.py`
+## 5. Configurar `settings.py`
 
-### 4.1 Importar o decouple
+### 5.1 Importar o decouple
 
 No topo de `config/settings.py`:
 
@@ -132,7 +134,7 @@ No topo de `config/settings.py`:
 from decouple import config
 ```
 
-### 4.2 SECRET_KEY e DEBUG
+### 5.2 SECRET_KEY e DEBUG
 
 Substitua:
 
@@ -141,7 +143,7 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 ```
 
-### 4.3 DATABASES
+### 5.3 DATABASES
 
 Substitua o bloco SQLite por:
 
@@ -165,18 +167,20 @@ DATABASES = {
 |---|---|
 | `ENGINE` | Driver do banco |
 | `NAME` | Database criado no MySQL |
-| `HOST` / `PORT` | Onde está o servidor (no container, mapeado para 127.0.0.1:3306) |
+| `HOST` / `PORT` | Onde está o servidor (na sua máquina, `127.0.0.1:3306`) |
 | `OPTIONS.charset` | Garante `utf8mb4` na conexão |
 
 ---
 
-## 5. Validar conexão
+## 6. Validar conexão
 
 ```bash
 python manage.py check
 ```
 
 Deve responder `System check identified no issues (0 silenced).`
+
+Se aparecer erro `Access denied`, revise a senha no `.env`. Se aparecer `Unknown database 'tarefas'`, volte ao passo 2 e crie o database.
 
 > **Por que não rodar `migrate` agora?** Vamos criar o **User customizado** na Aula 04 antes da primeira migration. Adiar o `migrate` evita resetar o banco depois.
 
@@ -186,21 +190,20 @@ Deve responder `System check identified no issues (0 silenced).`
 
 | Etapa | Comando |
 |---|---|
-| Subir MySQL | `docker run -d --name mysql-tarefas -e MYSQL_ROOT_PASSWORD=root123 -e MYSQL_DATABASE=tarefas -p 3306:3306 mysql:8 --character-set-server=utf8mb4` |
-| Status | `docker ps` |
-| Parar | `docker stop mysql-tarefas` |
-| Ligar | `docker start mysql-tarefas` |
-| Console | `docker exec -it mysql-tarefas mysql -uroot -proot123` |
-| Conector Python | `pip install mysqlclient` (com pkg-config configurado) |
+| Conectar no MySQL | `mysql -u root -p` |
+| Criar database | `CREATE DATABASE tarefas CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;` |
+| Listar databases | `SHOW DATABASES;` |
+| Conector Python | `pip install mysqlclient` |
+| Decouple | `pip install python-decouple` |
 | Validar | `python manage.py check` |
 
 ---
 
 ## Exercício
 
-1. Suba o container MySQL
-2. Confirme com `docker ps`
-3. Instale `mysqlclient` e `python-decouple`
+1. Instale o MySQL na sua máquina e defina a senha do `root`
+2. Conecte com `mysql -u root -p` e crie o database `tarefas` com `utf8mb4`
+3. Instale `mysqlclient` e `python-decouple` no venv
 4. Crie o `.env` com as credenciais
 5. Ajuste `settings.py` para ler do `.env` e usar MySQL
 6. Rode `python manage.py check` — deve passar sem erros

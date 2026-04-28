@@ -20,7 +20,7 @@ Usuário (1) ───< (N) Tarefa (N) >─── (1) Categoria
 |---|---|
 | Linguagem | Python 3.11+ |
 | Framework | Django 5.x ou 6.x |
-| Banco | MySQL 8 (em container Docker — sem instalar nada no SO) |
+| Banco | MySQL 8 (instalado nativamente na máquina) |
 | Frontend | TailwindCSS via CDN (Play CDN — zero build) |
 | Configuração | `python-decouple` + `.env` |
 | Auth | `django.contrib.auth` com `User` customizado |
@@ -28,7 +28,7 @@ Usuário (1) ───< (N) Tarefa (N) >─── (1) Categoria
 ## Pré-requisitos
 
 - Python 3.11+
-- Docker (para rodar o MySQL sem instalar nada no sistema)
+- MySQL 8 instalado na máquina (instruções na [Aula 02](aula-02-mysql.md))
 - Git e um editor de código
 
 ## Aulas
@@ -36,7 +36,7 @@ Usuário (1) ───< (N) Tarefa (N) >─── (1) Categoria
 | # | Aula | Entrega |
 |---|---|---|
 | 01 | [Setup do projeto Django](aula-01-setup-projeto.md) | Projeto rodando com a página padrão do Django |
-| 02 | [MySQL via Docker + `.env`](aula-02-mysql.md) | Banco conectado ao Django |
+| 02 | [MySQL nativo + `.env`](aula-02-mysql.md) | Banco conectado ao Django |
 | 03 | [TailwindCSS + layout base](aula-03-tailwind-e-layout-base.md) | Home estilizada com navbar |
 | 04 | [User customizado + autenticação](aula-04-autenticacao.md) | Signup, login, logout funcionando |
 | 05 | [Categoria — Model + Admin](aula-05-categoria.md) | Categorias gerenciadas pelo Django Admin |
