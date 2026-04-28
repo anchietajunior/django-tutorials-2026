@@ -137,12 +137,11 @@ Acesse `/tarefas/`:
 
 ```
 app/
-├── config/                    # settings, urls, wsgi
-├── core/                      # home + layout
+├── config/                    # settings, urls, wsgi, view da home
 ├── accounts/                  # User customizado, signup, login, logout
 ├── categorias/                # model + admin
 ├── tarefas/                   # model, forms, views (CBVs), urls, templates
-├── templates/base.html
+├── templates/                 # base.html + home.html
 ├── static/
 ├── .env
 ├── requirements.txt

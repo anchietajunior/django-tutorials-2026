@@ -12,11 +12,34 @@ Criar o **User customizado** (decisão importante para projetos sérios) e telas
 
 ---
 
-## 1. Criando o app `accounts`
+## 1. O que é um "app" no Django?
+
+Até agora todo o nosso código mora dentro de `config/`: settings, urls, uma view de boas-vindas. Funciona — mas a partir desta aula vamos ter **vários arquivos sobre o mesmo assunto**: model do usuário, formulário de cadastro, view de signup, templates de login... Tudo sobre autenticação.
+
+Quando isso acontece, o Django pede para a gente **agrupar tudo num pacote**, chamado **app**. Um app é só uma pasta com arquivos relacionados:
+
+```
+accounts/
+├── __init__.py     # marca a pasta como pacote Python
+├── admin.py        # configuração do Django Admin
+├── apps.py         # metadados do app (gerado automaticamente)
+├── models.py       # tabelas do banco
+├── views.py        # funções/classes que respondem a requisições
+├── urls.py         # rotas (vamos criar)
+└── templates/      # HTMLs (vamos criar)
+```
+
+A vantagem: tudo sobre autenticação fica num lugar só. Se um dia o sistema crescer, dá para reaproveitar o app inteiro em outro projeto.
+
+> **Regra prática para iniciantes:** crie um app quando perceber que tem 3+ arquivos relacionados a um mesmo assunto. Para uma única página (como a home), não precisa.
+
+### Criar o app
 
 ```bash
 python manage.py startapp accounts
 ```
+
+Esse comando gera a pasta `accounts/` com vários arquivos prontos. Vamos editá-los nas próximas seções.
 
 ---
 
@@ -38,25 +61,34 @@ class User(AbstractUser):
 
 ## 3. Configurar `settings.py`
 
+Em `config/settings.py`, registre o novo app e ajuste as configurações de autenticação:
+
 ```python
 INSTALLED_APPS = [
-    # ...
-    'core',
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+
+    # Apps do projeto
     'accounts',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
 
 LOGIN_URL = 'accounts:login'
-LOGIN_REDIRECT_URL = 'core:home'
-LOGOUT_REDIRECT_URL = 'core:home'
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'home'
 ```
 
 | Setting | Função |
 |---|---|
+| `'accounts'` em `INSTALLED_APPS` | Avisa o Django que existe esse app — sem isso ele ignora migrations e templates do app |
 | `AUTH_USER_MODEL` | Diz ao Django qual model usar como User |
 | `LOGIN_URL` | Para onde redirecionar usuários não autenticados |
-| `LOGIN_REDIRECT_URL` | Para onde ir após login bem sucedido |
+| `LOGIN_REDIRECT_URL` | Para onde ir após login bem sucedido (`home` é o `name` da rota da Aula 03) |
 | `LOGOUT_REDIRECT_URL` | Para onde ir após logout |
 
 ---
@@ -169,15 +201,25 @@ urlpatterns = [
 
 `LoginView` e `LogoutView` já vêm prontas do Django — só precisamos apontar o template do login.
 
-`config/urls.py`:
+Agora abra `config/urls.py` e adicione a inclusão das rotas de `accounts`. Esse arquivo já tinha a rota da home da Aula 03; só estamos acrescentando uma linha:
 
 ```python
+from django.contrib import admin
+from django.urls import include, path
+
+from . import views
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('contas/', include('accounts.urls')),
-    path('', include('core.urls')),
+    path('', views.home, name='home'),
 ]
 ```
+
+| Detalhe | Função |
+|---|---|
+| `include('accounts.urls')` | Diz "tudo que começar com `/contas/` é tratado pelo `accounts/urls.py`" |
+| Ordem das rotas | `admin/` e `contas/` vêm antes da raiz — Django busca por prefixo, então a regra mais específica precisa vir primeiro |
 
 ---
 

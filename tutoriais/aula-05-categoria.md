@@ -16,8 +16,9 @@ Registre em `INSTALLED_APPS`:
 
 ```python
 INSTALLED_APPS = [
-    # ...
-    'core',
+    # ... apps padrão do Django
+
+    # Apps do projeto
     'accounts',
     'categorias',
 ]

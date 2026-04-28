@@ -1,156 +1,192 @@
-# Aula 03 — TailwindCSS (CDN) e Layout Base
+# Aula 03 — Primeira página: rota, view e template
 
 ## Objetivo
 
-Criar a primeira página do sistema (home) e estilizar com Tailwind. Para manter o setup simples, vamos usar o **Tailwind via CDN** — uma única tag `<script>` no `<head>` e pronto. Sem Node, sem build, sem terminal extra.
+Criar a primeira página do sistema. Vamos começar **ridiculamente simples**: uma URL, uma função Python que responde, e um pedacinho de HTML. Só depois adicionamos template e estilo.
 
 ```
-URL → View → Template (.html) → HTML estilizado
+[ Navegador pede / ]  →  [ urls.py ]  →  [ views.py ]  →  [ HTML de volta ]
 ```
 
-> **Nota:** o CDN (Play CDN) é ótimo para aprender e prototipar. Para produção, o caminho recomendado é instalar o Tailwind via npm e gerar um CSS otimizado. A troca é simples e fica como evolução natural depois — por ora, foco em entregar o sistema.
+Não vamos criar nenhum app novo nesta aula. Tudo fica nos arquivos que já existem dentro de `config/`.
+
+> **O que é um "app" no Django?** É um pacote Python que agrupa coisas relacionadas a um assunto (model, views, templates, URLs). A gente vai criar o primeiro app só na **Aula 04**, quando tivermos vários arquivos sobre autenticação para organizar. Para uma única página de boas-vindas, **não precisamos disso**.
 
 ---
 
-## 1. Criando o app `core`
+## 1. A view mais simples possível
 
-Em Django, cada **app** é um módulo com responsabilidade sobre um domínio. O app `core` cuida de páginas genéricas (home).
+Em Django, uma **view** é apenas uma função que recebe um pedido (`request`) e devolve uma resposta (`response`). Vamos escrever a primeira agora.
 
-```bash
-python manage.py startapp core
-```
-
-### Registrar em `INSTALLED_APPS`
-
-Em `config/settings.py`:
+Crie o arquivo `config/views.py` (ele ainda não existe):
 
 ```python
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+from django.http import HttpResponse
 
-    # Apps do projeto
-    'core',
+
+def home(request):
+    return HttpResponse('Olá, Django!')
+```
+
+| Parte | O que faz |
+|---|---|
+| `from django.http import HttpResponse` | Importa a classe que representa uma resposta HTTP de texto simples |
+| `def home(request):` | Define a função. **Toda view recebe `request` como primeiro parâmetro** — é o objeto que carrega tudo sobre o pedido (URL, método, dados) |
+| `return HttpResponse('Olá, Django!')` | Devolve uma resposta com o texto "Olá, Django!" |
+
+Só isso. Uma função Python normal que devolve um objeto.
+
+---
+
+## 2. Conectar a view a uma URL
+
+A view existe, mas o Django ainda não sabe **quando** chamá-la. Quem decide é o roteador de URLs. Abra `config/urls.py` (esse arquivo já foi criado pelo `startproject`):
+
+```python
+from django.contrib import admin
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', views.home, name='home'),
 ]
 ```
 
-> **Por que registrar?** O Django só descobre migrations, templates e estáticos de apps registrados.
+| Linha | O que faz |
+|---|---|
+| `from . import views` | Importa o `views.py` que acabamos de criar (o `.` significa "do pacote atual", ou seja, `config/`) |
+| `path('', views.home, name='home')` | Mapeia a URL raiz (string vazia = `/`) para a função `home`. O `name='home'` é um apelido que vamos usar nos templates |
+
+> **Por que `name='home'`?** Para nunca mais escrever `/` na mão. Em qualquer lugar do projeto vamos referenciar essa URL como `'home'` — se um dia mudarmos o caminho, só ajustamos aqui.
 
 ---
 
-## 2. View, URL e template da home
+## 3. Testar
 
-### 2.1 View
+```bash
+python manage.py runserver
+```
 
-`core/views.py`:
+Acesse `http://127.0.0.1:8000/`. Deve aparecer **Olá, Django!** em texto puro, sem estilização.
+
+Pare o servidor com `Ctrl + C`.
+
+> Cabe parar e celebrar: você acabou de fazer **request → URL → view → response**. Esse é o ciclo inteiro do Django. Tudo daqui pra frente é variação em cima disso.
+
+---
+
+## 4. Trocar texto puro por um template HTML
+
+Texto cru é feio. Vamos devolver um arquivo HTML. Para isso, dois passos:
+
+### 4.1 Criar a pasta de templates
+
+Na raiz do projeto:
+
+```bash
+mkdir templates
+```
+
+### 4.2 Avisar o Django onde procurar templates
+
+Em `config/settings.py`, dentro do bloco `TEMPLATES`, troque:
+
+```python
+'DIRS': [],
+```
+
+Por:
+
+```python
+'DIRS': [BASE_DIR / 'templates'],
+```
+
+> `DIRS` é a lista de pastas globais de templates. `BASE_DIR` é a raiz do projeto (já definida no topo do `settings.py`).
+
+### 4.3 Criar o template
+
+`templates/home.html`:
+
+```html
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Tarefas</title>
+</head>
+<body>
+    <h1>Olá, Django!</h1>
+    <p>Esta é a página inicial.</p>
+</body>
+</html>
+```
+
+### 4.4 Atualizar a view para renderizar o template
+
+Em `config/views.py`:
 
 ```python
 from django.shortcuts import render
 
 
 def home(request):
-    return render(request, 'core/home.html')
+    return render(request, 'home.html')
 ```
 
-| Linha | O que faz |
+| Mudança | O que faz |
 |---|---|
-| `render(request, 'core/home.html')` | Encontra o template, renderiza e devolve `HttpResponse` |
+| `render(request, 'home.html')` | Procura `home.html` nas pastas configuradas, renderiza e devolve um `HttpResponse` com o HTML |
 
-### 2.2 URLs do app
-
-Crie `core/urls.py` (não vem por padrão):
-
-```python
-from django.urls import path
-
-from . import views
-
-app_name = 'core'
-
-urlpatterns = [
-    path('', views.home, name='home'),
-]
-```
-
-| Detalhe | Função |
-|---|---|
-| `app_name = 'core'` | Namespace — referencia como `core:home` |
-| `name='home'` | Identificador que usamos em `{% url %}` (nunca hardcode caminhos) |
-
-### 2.3 Incluir no roteador raiz
-
-`config/urls.py`:
-
-```python
-from django.contrib import admin
-from django.urls import include, path
-
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('core.urls')),
-]
-```
+Recarregue a página. Agora aparece um `<h1>` formatado.
 
 ---
 
-## 3. Templates
+## 5. Estilizar com TailwindCSS via CDN
 
-### 3.1 Configurar `TEMPLATES.DIRS`
+HTML sem estilo segue feio. Em vez de instalar Node + build de CSS, vamos usar o **Tailwind via CDN**: uma única tag `<script>` no `<head>` e todas as classes utilitárias do Tailwind ficam disponíveis.
 
-Em `config/settings.py`, dentro de `TEMPLATES`:
+> **Custos do CDN:** o Tailwind é processado no navegador (alguns segundos de overhead) e o bundle vem inteiro (sem otimização). Em produção, o caminho recomendado é instalar via npm e gerar um CSS otimizado. Para aprender, é o caminho de menor fricção.
 
-```python
-'DIRS': [BASE_DIR / 'templates'],
-```
-
-> `DIRS` busca templates globais (como `base.html`); `APP_DIRS=True` busca dentro de cada app (`core/templates/...`).
-
-### 3.2 Estrutura
-
-```
-app/
-├── templates/
-│   └── base.html
-└── core/
-    └── templates/
-        └── core/
-            └── home.html
-```
-
-> **Por que `core/templates/core/`?** Convenção: a subpasta com nome do app evita conflito quando dois apps têm template de mesmo nome.
-
-```bash
-mkdir -p templates
-mkdir -p core/templates/core
-mkdir -p static
-```
-
----
-
-## 4. Tailwind via CDN
-
-Não precisa instalar nada. A linha mágica é uma tag `<script>` no `<head>` do `base.html`:
+Substitua `templates/home.html` por:
 
 ```html
-<script src="https://cdn.tailwindcss.com"></script>
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Tarefas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
+    <main class="max-w-6xl mx-auto px-4 py-20 text-center">
+        <h1 class="text-4xl font-bold text-gray-800 mb-4">
+            Bem-vindo à Lista de Tarefas
+        </h1>
+        <p class="text-lg text-gray-600">
+            Sistema construído com Django, MySQL e TailwindCSS.
+        </p>
+    </main>
+</body>
+</html>
 ```
 
-Esse script baixa o Tailwind no navegador e gera as classes que você usar no HTML, em tempo real. Resultado: **todas as classes utilitárias do Tailwind disponíveis sem build**.
+Recarregue. Agora a página tem estilo.
 
-> **Custos do CDN:** o Tailwind é processado no navegador (alguns segundos de overhead) e não há tree-shaking — o bundle vem inteiro. Em produção, troca-se pelo build com PostCSS. Para aprender, é o caminho de menor fricção.
+> **Aviso no console do navegador:** o CDN imprime um aviso de "should not be used in production". É esperado — significa que está funcionando.
 
 ---
 
-## 5. Template base
+## 6. Layout reutilizável: `base.html`
+
+Daqui pra frente vamos ter várias páginas (login, lista de tarefas, detalhe...). Repetir todo o `<html>`, `<head>` e header em cada uma é trabalhoso e perigoso (mudar a navbar exigiria editar 10 arquivos).
+
+A solução do Django é **herança de templates**: criar um `base.html` com a estrutura comum, e cada página estende esse base preenchendo apenas o miolo.
 
 `templates/base.html`:
 
 ```html
-{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -163,7 +199,7 @@ Esse script baixa o Tailwind no navegador e gera as classes que você usar no HT
 
     <header class="bg-white shadow-sm">
         <nav class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-            <a href="{% url 'core:home' %}" class="text-xl font-bold text-blue-600 hover:text-blue-800">
+            <a href="{% url 'home' %}" class="text-xl font-bold text-blue-600 hover:text-blue-800">
                 Lista de Tarefas
             </a>
             <div class="flex items-center gap-4 text-sm">
@@ -186,12 +222,14 @@ Esse script baixa o Tailwind no navegador e gera as classes que você usar no HT
 </html>
 ```
 
-**Pontos chave:**
-- `<script src="https://cdn.tailwindcss.com"></script>` — habilita o Tailwind
-- `{% block nav %}` será preenchido nas próximas aulas (logado vs deslogado)
-- Vamos voltar a esse `base.html` para acrescentar coisas conforme a necessidade aparecer (links da navbar na Aula 04, bloco de mensagens flash na Aula 07)
+| Tag | Função |
+|---|---|
+| `{% block title %}...{% endblock %}` | Marca um buraco que páginas filhas podem preencher. O conteúdo entre as tags é o **valor padrão** (se a filha não preencher, esse texto vai pra tela) |
+| `{% block content %}{% endblock %}` | Buraco principal — onde cada página coloca seu miolo |
+| `{% block nav %}{% endblock %}` | Buraco vazio na navbar — vamos preencher na Aula 04 com links de login/cadastro |
+| `{% url 'home' %}` | Resolve o nome `home` (definido no `urls.py`) para a URL real (`/`). **Nunca escreva caminhos na mão** |
 
-`core/templates/core/home.html`:
+Agora reescreva `templates/home.html` para usar a herança:
 
 ```html
 {% extends 'base.html' %}
@@ -210,11 +248,19 @@ Esse script baixa o Tailwind no navegador e gera as classes que você usar no HT
 {% endblock %}
 ```
 
+| Tag | Função |
+|---|---|
+| `{% extends 'base.html' %}` | Diz "minha estrutura é a do `base.html`" |
+| `{% block title %}Início{% endblock %}` | Preenche o buraco do título |
+| `{% block content %}...{% endblock %}` | Preenche o buraco principal |
+
+Recarregue. Mesmo visual, mas agora com header, footer e estrutura reutilizável.
+
 ---
 
-## 6. Arquivos estáticos no settings
+## 7. Arquivos estáticos no settings
 
-Mesmo usando o Tailwind via CDN, ainda vamos querer servir CSS/JS/imagens próprias mais para frente. Configure já:
+Mais para frente vamos querer servir CSS/JS/imagens próprios. Já deixe configurado em `config/settings.py`:
 
 ```python
 STATIC_URL = 'static/'
@@ -222,34 +268,59 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 ```
 
----
-
-## 7. Rodando
-
-Um único processo:
+E crie a pasta vazia:
 
 ```bash
-python manage.py runserver
+mkdir static
 ```
 
-Acesse `http://127.0.0.1:8000/` — página estilizada com a navbar (ainda sem links de login, eles entram na próxima aula).
+| Setting | Função |
+|---|---|
+| `STATIC_URL` | Prefixo da URL onde os arquivos estáticos serão servidos |
+| `STATICFILES_DIRS` | Pastas onde o Django procura estáticos durante o desenvolvimento |
+| `STATIC_ROOT` | Pasta para onde os estáticos vão ser **coletados** quando subirmos pra produção (ainda não usamos) |
 
-> **Aviso no console do navegador:** o Play CDN imprime um aviso de "should not be used in production". É esperado — significa que está funcionando.
+---
+
+## Estrutura final do projeto
+
+```
+app/
+├── config/
+│   ├── __init__.py
+│   ├── settings.py
+│   ├── urls.py
+│   ├── views.py        ← novo (uma única função, "home")
+│   ├── asgi.py
+│   └── wsgi.py
+├── templates/
+│   ├── base.html       ← novo (layout reutilizável)
+│   └── home.html       ← novo (estende o base)
+├── static/             ← novo (vazio por enquanto)
+├── venv/
+├── .env
+├── .gitignore
+└── manage.py
+```
+
+Ainda **nenhum** app criado. Isso vem na Aula 04.
 
 ---
 
 ## Exercício
 
-1. Crie o app `core` e registre no `settings.py`
-2. View `home`, `core/urls.py`, `include` em `config/urls.py`
-3. Configure `TEMPLATES.DIRS`
-4. Crie `base.html` com o `<script>` do Tailwind via CDN
-5. Crie `core/templates/core/home.html` estendendo o `base.html`
-6. Configure `STATIC_URL`, `STATICFILES_DIRS`, `STATIC_ROOT`
-7. Rode `runserver` e veja a home estilizada
+1. Crie `config/views.py` com a função `home` retornando `HttpResponse`
+2. Adicione a rota `path('', views.home, name='home')` em `config/urls.py`
+3. Rode o servidor e veja "Olá, Django!" em texto puro
+4. Crie a pasta `templates/` e configure `TEMPLATES.DIRS`
+5. Crie `templates/home.html` e troque a view para usar `render`
+6. Adicione o `<script>` do Tailwind CDN no `home.html`
+7. Crie `templates/base.html` com header/footer e blocos `title`, `content`, `nav`
+8. Reescreva `home.html` estendendo o `base.html`
+9. Configure `STATIC_URL`, `STATICFILES_DIRS`, `STATIC_ROOT` e crie a pasta `static/`
 
 ---
 
 ## Próxima aula
 
-[Aula 04 — User customizado + autenticação](aula-04-autenticacao.md).
+[Aula 04 — User customizado + autenticação](aula-04-autenticacao.md). É lá que vamos criar o **primeiro app** do projeto e descobrir por que ele existe.
