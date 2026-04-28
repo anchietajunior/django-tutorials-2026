@@ -125,13 +125,72 @@ Cria as tabelas internas do Django (auth, sessions, admin) **e** o `accounts_use
 python manage.py createsuperuser
 ```
 
-Informe usuário, email e senha.
+O comando vai pedir três informações no terminal:
 
-Acesse `http://127.0.0.1:8000/admin/` e faça login.
+```
+Username: admin
+Email address: admin@local.com
+Password: ••••••••••
+Password (again): ••••••••••
+Superuser created successfully.
+```
+
+> **Senha curta dá aviso?** Se a senha for muito simples (`123`, por exemplo), o Django pergunta se você quer mesmo continuar. Para fins de aprendizado pode aceitar — em produção, NÃO.
 
 ---
 
-## 6. Form de signup
+## 6. Primeiro contato com o Django Admin
+
+Você acabou de criar o **superuser**: um usuário com `is_staff=True` e `is_superuser=True`. Esses dois booleanos é que destravam a página `/admin/`. (Volte na conversa "Existe relação entre User e Admin?" se quiser revisar — é a mesma tabela, separada só por flags.)
+
+Suba o servidor:
+
+```bash
+python manage.py runserver
+```
+
+Acesse `http://127.0.0.1:8000/admin/`. Vai aparecer uma tela de login do Django Admin (não confunda com a tela de login que vamos construir nas próximas seções — essa é embutida).
+
+Faça login com as credenciais do superuser. Depois do login, você cai num painel parecido com este:
+
+```
+Django administration                        Welcome, ADMIN. Log out
+
+Site administration
+
+  AUTHENTICATION AND AUTHORIZATION
+  ──────────────────────────────────
+  Groups                       + Add    ✎ Change
+  Users                        + Add    ✎ Change
+```
+
+### O que cada peça significa
+
+| Elemento | Função |
+|---|---|
+| **Groups** | Grupos de permissões (ex: "Editores", "Moderadores"). Não vamos usar agora |
+| **Users** | Lista de usuários cadastrados — **é a sua tabela `accounts_user`**. Tem o `admin` que você acabou de criar |
+| **+ Add** | Botão para criar uma nova linha no model |
+| **✎ Change** | Lista todos os registros existentes |
+
+> **Por que só aparece "Authentication and Authorization"?** Porque registramos só o `User` no `accounts/admin.py` (seção 4 acima). Quando criarmos o model `Categoria` na Aula 05 e registrarmos com `@admin.register(Categoria)`, ele vai aparecer aqui também.
+
+### Explore um pouco
+
+1. Clique em **Users** → você verá uma tabela com o `admin`
+2. Clique no `admin` → abre o formulário de edição com TODOS os campos do User: username, password, email, first_name, last_name, **groups**, **user permissions**, **is_staff**, **is_superuser**, **is_active**, last login, date joined
+3. Note que a senha aparece como hash (`pbkdf2_sha256$...`) e há um link "this form" para trocá-la — o Django nunca mostra senha em texto puro, nem para o admin
+4. Volte para a página inicial e clique em **+ Add** ao lado de **Users** → o formulário é o mesmo `UserCreationForm` que vamos usar lá no signup
+
+> **Importante:** o admin é uma ferramenta operacional poderosa. Você pode criar, editar e apagar dados diretamente sem passar pelas regras das suas views. Use com cuidado em produção e, mais importante: **só dê acesso ao admin (`is_staff=True`) para quem precisa**. Um usuário comum cadastrado via `/contas/cadastrar/` (que vamos criar a seguir) tem `is_staff=False` e simplesmente não consegue acessar `/admin/`.
+
+### Sair do admin
+
+Clique em "Log out" no canto superior direito. Vamos voltar a usar o admin na **Aula 05**, quando registrarmos o model `Categoria`.
+
+---
+
+## 7. Form de signup
 
 `accounts/forms.py`:
 
@@ -151,7 +210,7 @@ Reutilizamos o `UserCreationForm` (já valida senha forte, confirmação, etc.) 
 
 ---
 
-## 7. Views
+## 8. Views
 
 `accounts/views.py`:
 
@@ -176,7 +235,7 @@ class SignupView(CreateView):
 
 ---
 
-## 8. URLs de auth
+## 9. URLs de auth
 
 `accounts/urls.py`:
 
@@ -223,7 +282,7 @@ urlpatterns = [
 
 ---
 
-## 9. Templates
+## 10. Templates
 
 ```bash
 mkdir -p accounts/templates/accounts
@@ -311,7 +370,7 @@ mkdir -p accounts/templates/accounts
 
 ---
 
-## 10. Atualizar a navbar do `base.html`
+## 11. Atualizar a navbar do `base.html`
 
 Em `templates/base.html`, troque o `{% block nav %}{% endblock %}` por:
 
@@ -334,7 +393,7 @@ Em `templates/base.html`, troque o `{% block nav %}{% endblock %}` por:
 
 ---
 
-## 11. Testar
+## 12. Testar
 
 ```bash
 python manage.py runserver
