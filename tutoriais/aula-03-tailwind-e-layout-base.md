@@ -172,20 +172,6 @@ Esse script baixa o Tailwind no navegador e gera as classes que você usar no HT
         </nav>
     </header>
 
-    {% if messages %}
-    <div class="max-w-6xl mx-auto px-4 pt-4 w-full space-y-2">
-        {% for msg in messages %}
-            <div class="px-4 py-2 rounded
-                {% if msg.tags == 'success' %}bg-green-100 text-green-800{% endif %}
-                {% if msg.tags == 'error' %}bg-red-100 text-red-800{% endif %}
-                {% if msg.tags == 'warning' %}bg-yellow-100 text-yellow-800{% endif %}
-                {% if msg.tags == 'info' %}bg-blue-100 text-blue-800{% endif %}">
-                {{ msg }}
-            </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
     <main class="max-w-6xl mx-auto px-4 py-8 flex-1 w-full">
         {% block content %}{% endblock %}
     </main>
@@ -203,7 +189,7 @@ Esse script baixa o Tailwind no navegador e gera as classes que você usar no HT
 **Pontos chave:**
 - `<script src="https://cdn.tailwindcss.com"></script>` — habilita o Tailwind
 - `{% block nav %}` será preenchido nas próximas aulas (logado vs deslogado)
-- O bloco de mensagens já está pronto para receber `messages.success(...)` que usaremos depois
+- Vamos voltar a esse `base.html` para acrescentar coisas conforme a necessidade aparecer (links da navbar na Aula 04, bloco de mensagens flash na Aula 07)
 
 `core/templates/core/home.html`:
 

@@ -413,7 +413,72 @@ Adicione um link para "Tarefas" quando logado:
 
 ---
 
-## 6. Testar o fluxo completo
+## 6. Mensagens flash (`django.contrib.messages`)
+
+Note que nas views já estamos usando `SuccessMessageMixin` e `messages.success(...)`. Agora vamos completar a outra ponta: **mostrar essas mensagens na tela**.
+
+### Como funciona o framework de mensagens
+
+O Django tem um app embutido chamado `django.contrib.messages` que serve para enviar mensagens curtas de uma view para a próxima requisição (típico caso: "Criou com sucesso" depois de um redirect). Ele já vem registrado no `INSTALLED_APPS` desde o `startproject` e tem um middleware ativo, então **não precisamos instalar nada**.
+
+O fluxo é:
+
+```
+[ View chama messages.success(request, "...") ]
+            │
+            ▼
+[ Mensagem fica guardada na sessão ]
+            │
+            ▼
+[ Próxima resposta: context processor injeta `messages` no template ]
+            │
+            ▼
+[ Template lê {{ messages }} e renderiza ]
+            │
+            ▼
+[ Mensagem é consumida (some na próxima requisição) ]
+```
+
+| Peça | Onde fica | Status |
+|---|---|---|
+| App `django.contrib.messages` | `INSTALLED_APPS` | Já está |
+| Middleware | `MessageMiddleware` em `MIDDLEWARE` | Já está |
+| Context processor | `django.contrib.messages.context_processors.messages` em `TEMPLATES.OPTIONS` | Já está |
+| API para escrever | `messages.success/info/warning/error(request, "...")` ou `SuccessMessageMixin` | Já estamos usando nas views acima |
+| **Renderização no template** | Bloco `{% if messages %}` em `base.html` | **Falta — vamos adicionar agora** |
+
+> **Por que tudo isso já estava configurado?** Porque `django.contrib.messages` faz parte da configuração padrão do `startproject`. Só estávamos sem o último elo: ler `messages` no template.
+
+### Adicionar o bloco de mensagens no `base.html`
+
+Em `templates/base.html`, **logo antes da tag `<main>`**, adicione:
+
+```html
+{% if messages %}
+<div class="max-w-6xl mx-auto px-4 pt-4 w-full space-y-2">
+    {% for msg in messages %}
+        <div class="px-4 py-2 rounded
+            {% if msg.tags == 'success' %}bg-green-100 text-green-800{% endif %}
+            {% if msg.tags == 'error' %}bg-red-100 text-red-800{% endif %}
+            {% if msg.tags == 'warning' %}bg-yellow-100 text-yellow-800{% endif %}
+            {% if msg.tags == 'info' %}bg-blue-100 text-blue-800{% endif %}">
+            {{ msg }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+```
+
+| Detalhe | Função |
+|---|---|
+| `{{ messages }}` | Variável injetada pelo context processor — contém as mensagens da sessão |
+| `msg.tags` | Identifica o tipo (`success`, `error`, `warning`, `info`) — usamos para escolher a cor |
+| `{{ msg }}` | O texto da mensagem |
+| Loop é "consumidor" | Iterar sobre `messages` marca as mensagens como lidas — elas somem na próxima requisição |
+
+---
+
+## 7. Testar o fluxo completo
 
 1. Cadastre um usuário (`/contas/cadastrar/`)
 2. Faça login
@@ -433,7 +498,8 @@ Adicione um link para "Tarefas" quando logado:
 3. Crie `tarefas/urls.py` e inclua no `config/urls.py`
 4. Os 4 templates (lista, form, detalhe, confirmar exclusão)
 5. Atualize a navbar
-6. Teste o fluxo completo com 2 usuários diferentes — confirme o isolamento
+6. Adicione o bloco de mensagens flash no `base.html`
+7. Teste o fluxo completo com 2 usuários diferentes — confirme o isolamento
 
 ---
 
