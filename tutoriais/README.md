@@ -1,17 +1,19 @@
-# Trilha — Lista de Tarefas com Django + MySQL + TailwindCSS
+# Trilha — Posts com Django + MySQL + TailwindCSS
 
-Trilha **enxuta e prática** para construir, do zero ao funcional, um sistema web de **Lista de Tarefas** usando Django, MySQL e TailwindCSS. Aulas curtas, foco em "aprender fazendo".
+Trilha **enxuta e prática** para construir, do zero ao funcional, um sistema web de **Posts pessoais** usando Django, MySQL e TailwindCSS. Aulas curtas, foco em "aprender fazendo".
 
 ## O que vamos construir
 
-Sistema multiusuário onde cada pessoa cadastra suas próprias tarefas, organizadas por **categoria** (gerenciadas pelo admin) e com **status** (pendente, em andamento, concluída).
+Sistema multiusuário onde cada pessoa cria seus **posts** (título, descrição, status), anexa uma **imagem** opcional e pode **baixar o post como PDF**. Cada usuário só enxerga os próprios posts.
 
 ### Domínio
 
 ```
-Usuário (1) ───< (N) Tarefa (N) >─── (1) Categoria
-                       │
-                       └── status: pendente | em andamento | concluída
+Usuário (1) ───< (N) Post
+                     ├── titulo
+                     ├── descricao
+                     ├── status: em progresso | finalizado
+                     └── imagem (opcional)
 ```
 
 ## Stack
@@ -24,6 +26,8 @@ Usuário (1) ───< (N) Tarefa (N) >─── (1) Categoria
 | Frontend | TailwindCSS via CDN (Play CDN — zero build) |
 | Configuração | `python-decouple` + `.env` |
 | Auth | `django.contrib.auth` com `User` customizado |
+| Upload | `Pillow` + `ImageField` |
+| PDF | `WeasyPrint` (HTML+CSS → PDF) |
 
 ## Pré-requisitos
 
@@ -37,13 +41,12 @@ Usuário (1) ───< (N) Tarefa (N) >─── (1) Categoria
 |---|---|---|
 | 01 | [Setup do projeto Django](aula-01-setup-projeto.md) | Projeto rodando com a página padrão do Django |
 | 02 | [MySQL nativo + `.env`](aula-02-mysql.md) | Banco conectado ao Django |
-| 03 | [TailwindCSS + layout base](aula-03-tailwind-e-layout-base.md) | Home estilizada com navbar |
-| 04 | [User customizado + autenticação](aula-04-autenticacao.md) | Signup, login, logout funcionando |
-| 05 | [Categoria — Model + Admin](aula-05-categoria.md) | Categorias gerenciadas pelo Django Admin |
-| 06 | [Tarefa — Model com FK e choices](aula-06-tarefa-model.md) | Tarefa no admin, vinculada a categoria e usuário |
-| 07 | [CRUD de Tarefa para o usuário](aula-07-crud-tarefa.md) | Usuário logado lista, cria, edita, exclui suas tarefas |
-| 08 | [Camadas do Django (revisão prática)](aula-08-camadas.md) | Mapeamento do código existente em camadas |
-| 09 | [Filtros, busca + encerramento](aula-09-filtros-e-encerramento.md) | Lista filtrada por status/categoria + próximos passos |
+| 03 | [TailwindCSS sem Node (CDN ou estático)](aula-03-tailwind-sem-node.md) | Primeira página estilizada + entender a asset pipeline |
+| 04 | [Autenticação + CRUD de Posts](aula-04-autenticacao-e-posts.md) | Signup/login/logout e CRUD básico de posts |
+| 05 | [Controle de acesso (cada um vê só os seus)](aula-05-controle-de-acesso.md) | Posts pertencem a um autor; usuário só vê os próprios |
+| 06 | [Regras de negócio: onde colocar?](aula-06-regras-de-negocio.md) | Hierarquia model → manager → services + refator concreto |
+| 07 | [Upload de imagem no post](aula-07-upload-de-imagem.md) | Cada post pode ter uma imagem anexada |
+| 08 | [Geração de PDF do post](aula-08-pdf.md) | Botão "Baixar PDF" com título, imagem e descrição (via `services.py`) |
 
 ## Como usar a trilha
 

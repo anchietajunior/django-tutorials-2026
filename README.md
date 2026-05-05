@@ -1,4 +1,4 @@
-# Lista de Tarefas — Django + MySQL + TailwindCSS
+# Posts — Django + MySQL + TailwindCSS
 
 Aplicação Django construída ao longo de uma trilha de aulas. O código fica em [`app/`](app/) e os tutoriais em [`tutoriais/`](tutoriais/README.md).
 
@@ -8,13 +8,12 @@ Aplicação Django construída ao longo de uma trilha de aulas. O código fica e
 |---|---|---|
 | 01 | [Setup do projeto Django](tutoriais/aula-01-setup-projeto.md) | Projeto rodando com a página padrão do Django |
 | 02 | [MySQL nativo + `.env`](tutoriais/aula-02-mysql.md) | Banco conectado ao Django |
-| 03 | [TailwindCSS (CDN) + layout base](tutoriais/aula-03-tailwind-e-layout-base.md) | Home estilizada com navbar |
-| 04 | [User customizado + autenticação](tutoriais/aula-04-autenticacao.md) | Signup, login, logout funcionando |
-| 05 | [Categoria — Model + Admin](tutoriais/aula-05-categoria.md) | Categorias gerenciadas pelo Django Admin |
-| 06 | [Tarefa — Model com FK e choices](tutoriais/aula-06-tarefa-model.md) | Tarefa no admin, vinculada a categoria e usuário |
-| 07 | [CRUD de Tarefa para o usuário](tutoriais/aula-07-crud-tarefa.md) | Usuário logado lista, cria, edita, exclui suas tarefas |
-| 08 | [Camadas do Django (revisão prática)](tutoriais/aula-08-camadas.md) | Mapeamento do código existente em camadas |
-| 09 | [Filtros, busca + encerramento](tutoriais/aula-09-filtros-e-encerramento.md) | Lista filtrada por status/categoria + próximos passos |
+| 03 | [TailwindCSS sem Node (CDN ou estático)](tutoriais/aula-03-tailwind-sem-node.md) | Primeira página estilizada + entender a asset pipeline |
+| 04 | [Autenticação + CRUD de Posts](tutoriais/aula-04-autenticacao-e-posts.md) | Signup/login/logout e CRUD básico de posts |
+| 05 | [Controle de acesso (cada um vê só os seus)](tutoriais/aula-05-controle-de-acesso.md) | Posts pertencem a um autor; usuário só vê os próprios |
+| 06 | [Regras de negócio: onde colocar?](tutoriais/aula-06-regras-de-negocio.md) | Hierarquia model → manager → services + refator concreto |
+| 07 | [Upload de imagem no post](tutoriais/aula-07-upload-de-imagem.md) | Cada post pode ter uma imagem anexada |
+| 08 | [Geração de PDF do post](tutoriais/aula-08-pdf.md) | Botão "Baixar PDF" com título, imagem e descrição (via `services.py`) |
 
 ## Como rodar
 
@@ -24,4 +23,4 @@ source venv/bin/activate
 python manage.py runserver
 ```
 
-Pré-requisito: MySQL rodando localmente com o database `tarefas` criado (ver [Aula 02](tutoriais/aula-02-mysql.md)).
+Pré-requisito: MySQL rodando localmente com o database criado (ver [Aula 02](tutoriais/aula-02-mysql.md)).

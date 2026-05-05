@@ -199,6 +199,29 @@ python manage.py runserver
 
 ---
 
+## 🔁 Vindo do Rails
+
+Se você programa em Rails, este é o mapa para esta aula:
+
+| Ferramenta / conceito | Rails | Django |
+|---|---|---|
+| Versão da linguagem | `rbenv`, `rvm`, `asdf` (`.ruby-version`) | `pyenv` ou Python do sistema (não há `.python-version` oficial) |
+| Isolamento de dependências | `bundler` + `Gemfile` / `Gemfile.lock` | `venv` (pasta isolada) + `requirements.txt` ou `pip-tools`/`poetry` |
+| Instalar dependências | `bundle install` | `pip install -r requirements.txt` |
+| Adicionar uma lib | `bundle add foo` | `pip install foo` (e você atualiza o `requirements.txt` na mão — `pip` não cuida disso) |
+| Criar projeto | `rails new meu_app` | `django-admin startproject config .` |
+| Script da aplicação | `bin/rails` | `manage.py` |
+| Subir o servidor de dev | `rails server` (`bin/rails s`) | `python manage.py runserver` |
+| Configuração centralizada | `config/application.rb` + initializers | `config/settings.py` (um único arquivo gigante por padrão) |
+| Roteador | `config/routes.rb` | `config/urls.py` |
+| Idioma e fuso | `config.i18n.default_locale = :pt-BR` | `LANGUAGE_CODE = 'pt-br'` + `TIME_ZONE = '...'` |
+
+> 💎 **Vindo do Rails — pegue isto:** o `venv` é uma **pasta dentro do projeto** (você ativa com `source venv/bin/activate`), enquanto Bundler instala as gems num cache global e isola via `Gemfile`. Se esquecer de ativar o venv, `pip install foo` vai parar no Python do sistema — equivalente a rodar `gem install` sem Bundler.
+
+> 💎 **Vindo do Rails — não há `bundle exec`.** Quando o `venv` está ativo, o `python` e o `pip` do PATH **já são** os do projeto. Não existe o ritual `bundle exec rails ...` para garantir versão certa.
+
+---
+
 ## Próxima aula
 
 [Aula 02 — MySQL nativo + `.env`](aula-02-mysql.md).

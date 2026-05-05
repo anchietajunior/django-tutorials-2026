@@ -210,6 +210,23 @@ Se aparecer erro `Access denied`, revise a senha no `.env`. Se aparecer `Unknown
 
 ---
 
+## 🔁 Vindo do Rails
+
+| Conceito | Rails | Django |
+|---|---|---|
+| Configuração de banco | `config/database.yml` (YAML, ambientes embutidos) | `DATABASES = {...}` em `settings.py` (Python dict) |
+| Adapter | `mysql2` gem | `mysqlclient` (driver C) — instalado via `pip install mysqlclient` |
+| Variáveis sensíveis | `Rails.application.credentials` (criptografado) ou `dotenv-rails` | `python-decouple` lendo `.env` (texto puro no `.gitignore`) |
+| Encoding default | `encoding: utf8mb4` no `database.yml` | `'OPTIONS': {'charset': 'utf8mb4'}` no `DATABASES` |
+| Validar conexão | `rails db:version` ou `rails runner 'ActiveRecord::Base.connection'` | `python manage.py check` |
+| Criar database | `rails db:create` (Rails cria automaticamente!) | Você cria no MySQL **na mão** com `CREATE DATABASE` |
+
+> 💎 **Vindo do Rails — não existe `db:create`.** O Django **não cria** o database para você. Você precisa logar no MySQL e rodar `CREATE DATABASE` manualmente. O `migrate` só funciona depois que o database existe.
+
+> 💎 **Vindo do Rails — não há `database.yml` por ambiente.** A separação dev/test/prod do Rails (três blocos no YAML) não vem por padrão no Django. A prática é dividir o `settings.py` em `settings/base.py`, `settings/dev.py`, `settings/prod.py` e escolher via `DJANGO_SETTINGS_MODULE`. Para esta trilha, ficamos no arquivo único.
+
+---
+
 ## Próxima aula
 
-[Aula 03 — TailwindCSS e layout base](aula-03-tailwind-e-layout-base.md).
+[Aula 03 — TailwindCSS sem Node (CDN ou estático)](aula-03-tailwind-sem-node.md).
