@@ -14,6 +14,7 @@ Aplicação Django construída ao longo de uma trilha de aulas. O código fica e
 | 06 | [Regras de negócio: onde colocar?](tutoriais/aula-06-regras-de-negocio.md) | Hierarquia model → manager → services + refator concreto |
 | 07 | [Upload de imagem no post](tutoriais/aula-07-upload-de-imagem.md) | Cada post pode ter uma imagem anexada |
 | 08 | [Geração de PDF do post](tutoriais/aula-08-pdf.md) | Botão "Baixar PDF" com título, imagem e descrição (via `services.py`) |
+| 09 | ["Explicar com IA" (LLM gratuita)](tutoriais/aula-09-explicacao-com-ia.md) | Botão chama Groq/Llama, salva resposta no campo `ai_explanation` |
 
 ## Como rodar
 

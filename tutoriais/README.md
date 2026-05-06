@@ -4,7 +4,7 @@ Trilha **enxuta e prática** para construir, do zero ao funcional, um sistema we
 
 ## O que vamos construir
 
-Sistema multiusuário onde cada pessoa cria seus **posts** (título, descrição, status), anexa uma **imagem** opcional e pode **baixar o post como PDF**. Cada usuário só enxerga os próprios posts.
+Sistema multiusuário onde cada pessoa cria seus **posts** (título, descrição, status), anexa uma **imagem** opcional, **baixa o post como PDF** e gera **explicações automáticas via LLM**. Cada usuário só enxerga os próprios posts.
 
 ### Domínio
 
@@ -28,6 +28,7 @@ Usuário (1) ───< (N) Post
 | Auth | `django.contrib.auth` com `User` customizado |
 | Upload | `Pillow` + `ImageField` |
 | PDF | `WeasyPrint` (HTML+CSS → PDF) |
+| LLM | `groq` (Llama 3.1, free tier sem cartão) |
 
 ## Pré-requisitos
 
@@ -47,6 +48,7 @@ Usuário (1) ───< (N) Post
 | 06 | [Regras de negócio: onde colocar?](aula-06-regras-de-negocio.md) | Hierarquia model → manager → services + refator concreto |
 | 07 | [Upload de imagem no post](aula-07-upload-de-imagem.md) | Cada post pode ter uma imagem anexada |
 | 08 | [Geração de PDF do post](aula-08-pdf.md) | Botão "Baixar PDF" com título, imagem e descrição (via `services.py`) |
+| 09 | ["Explicar com IA" (LLM gratuita)](aula-09-explicacao-com-ia.md) | Botão chama Groq/Llama, salva resposta no campo `ai_explanation` |
 
 ## Como usar a trilha
 

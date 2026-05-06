@@ -309,4 +309,6 @@ python manage.py runserver
 
 ---
 
-🎉 **Fim da trilha.** Você saiu de zero (Aula 01) até um sistema multiusuário com autenticação, controle de acesso, upload de arquivos e geração de PDF.
+## Próxima aula
+
+[Aula 09 — "Explicar com IA": integrando uma LLM gratuita](aula-09-explicacao-com-ia.md). Vamos aplicar a hierarquia da Aula 06 mais uma vez — agora chamando uma API externa.
